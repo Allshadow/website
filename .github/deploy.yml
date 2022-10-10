@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: Build on node ${{ matrix.node_version }} and ${{ matrix.os }}
+    
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node_version: [14.x]
+		# name 是步骤提示，在github actions 里面可以看到
+		# uses github 提供的一些插件
+		# with 插件的配置
+		# run 我们需要执行的命令
+    steps:  # 运行步骤
+      # check out the repository
+      - name: Checkout
+        uses: actions/checkout@v2    #这里使用了github官方提供的action,checkout项目到虚拟机上
+
+      - name: Use Node.js ${{ matrix.node_version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node_version }}
+
+      - name: changeYum
+        run: npm config set registry http://registry.npm.taobao.org/
+
+      - name: Install Dependencies
+        run: yarn
+
+      - name: Build
+        run: npm run deploy
+
+      # 利用action把build好的文件上传到服务器/resource/blog路径下,需要确认此目录已在服务端创建
+      - name: Upload from public_html via FTP
+        uses: airvzxf/ftp-deployment-action@latest
+        with:
+          server: ${{ secrets.server_ip }} #这个东西下面有解释怎么用
+          user: ${{ secrets.user }}
+          password: ${{ secrets.pwd }}
+          local_dir: "public/"
+          remote_dir: "/resource/home"
+          delete: true

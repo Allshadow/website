@@ -41,5 +41,5 @@ jobs:
           user: ${{ secrets.user }}
           password: ${{ secrets.pwd }}
           local_dir: "public/"
-          remote_dir: "/resource/home"
+          remote_dir: "/resource/web/website"
           delete: true
